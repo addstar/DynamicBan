@@ -1,11 +1,7 @@
 package co.cc.dynamicdev.dynamicbanplus;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -84,75 +80,6 @@ public class DynamicBan extends JavaPlugin implements Listener {
 		}
 		return (permission != null);
 	}
-	
-	private void updateCheck() {
-		FileConfiguration config = YamlConfiguration.loadConfiguration(configfile);
-		if(config.getBoolean("config.check_for_updates") == false) {
-			System.out.println("[DynamicBan] Update checks disabled in the config.");
-			return;
-		}
-		Logger.getLogger(JavaPlugin.class.getName()).log(Level.INFO, "[DynamicBan] Checking the server for update info...");
-		try {
-			version = this.getDescription().getVersion();
-
-			int updateVer;
-			int curVer;
-			int updateHot = 0;
-			int curHot = 0;
-			int updateBuild;
-			int curBuild;
-
-			URLConnection yc = new URL("https://raw.github.com/DJ4ddi/DynamicBan/master/version.txt").openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(yc.getInputStream()));
-
-
-			String updateVersion = in.readLine().replace(".", "");
-
-			if (Character.isLetter(updateVersion.charAt(updateVersion.length() - 1))) {
-				updateHot = Character.getNumericValue(updateVersion.charAt(updateVersion.length() - 1));
-				updateVer = Integer.parseInt(updateVersion.substring(0, updateVersion.length() - 1));
-			} else {
-				updateVer = Integer.parseInt(updateVersion);
-			}
-
-			if (Character.isLetter(version.charAt(version.length() - 1))) {
-				String tversion = version.replace(".", "");
-				curHot = Character.getNumericValue(tversion.charAt(tversion.length() - 1));
-				curVer = Integer.parseInt(tversion.substring(0, tversion.length() - 1));
-			} else {
-				curVer = Integer.parseInt(version.replace(".", ""));
-			}
-
-			boolean updateAvailable = false;
-			if (updateVer > curVer || updateVer == curVer && updateHot > curHot) {
-				Logger.getLogger(JavaPlugin.class.getName()).log(Level.INFO, "[DynamicBan] Update available! Check BukkitDev.");
-				updateAvailable = true;
-			} else {
-				Logger.getLogger(JavaPlugin.class.getName()).log(Level.INFO, "[DynamicBan] No update available.");
-			}
-
-			if (updateAvailable) {
-				Pattern pattern = Pattern.compile("-b(\\d*?)jnks", Pattern.CASE_INSENSITIVE);
-				Matcher matcher = pattern.matcher(Bukkit.getServer().getVersion());
-				if (!matcher.find() || matcher.group(1) == null) {
-					curBuild = Integer.parseInt(matcher.group(1));
-					updateBuild = Integer.parseInt(in.readLine());
-					if (updateBuild > curBuild) {
-						Logger.getLogger(JavaPlugin.class.getName()).log(Level.INFO, "[DynamicBan] It is recommended to update Bukkit to version " + updateBuild);
-					} else {
-						Logger.getLogger(JavaPlugin.class.getName()).log(Level.INFO, "[DynamicBan] The update should be compatible.");
-					}
-				} else {
-					Logger.getLogger(JavaPlugin.class.getName()).log(Level.WARNING, "[DynamicBan] The server version couldn't be parsed.");
-				}
-			}
-			in.close();
-
-		} catch (IOException e) {
-			e.printStackTrace();
-			Logger.getLogger(JavaPlugin.class.getName()).log(Level.SEVERE, "[DynamicBan] Error performing update check!");
-		}
-	}
 
 	@Override
 	public void onEnable() {
@@ -171,12 +98,6 @@ public class DynamicBan extends JavaPlugin implements Listener {
 		saveConfig();
 		loadTag(config);
 		loadWarnFormat(config);
-		getServer().getScheduler().runTask(this, new Runnable() {
-			@Override
-			public void run() {
-				updateCheck();
-			}
-		});
 		getCommand("dynplayer").setExecutor(new PlayerDetails(this));
 		getCommand("dynkick").setExecutor(new KickPlayer(this));
 		getCommand("dynban").setExecutor(new BanPlayer(this));
